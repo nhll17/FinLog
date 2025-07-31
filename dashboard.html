@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard | BudgetMate</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-teal-200 min-h-screen">
+  <!-- Header -->
+  <header class="bg-white shadow p-4 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-blue-800">BudgetMate Dashboard</h1>
+    <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Logout</button>
+  </header>
+
+  <!-- Main Content -->
+  <div class="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Add Expense -->
+    <div class="md:col-span-1 bg-white rounded-xl p-6 shadow">
+      <h2 class="text-lg font-semibold text-blue-800 mb-4">Add Expense</h2>
+      <form id="expenseForm" class="space-y-4">
+        <input type="number" placeholder="Amount" required class="w-full border px-4 py-2 rounded" id="amount">
+        <select id="category" required class="w-full border px-4 py-2 rounded">
+          <option value="">Select Category</option>
+          <option>Food</option>
+          <option>Rent</option>
+          <option>Travel</option>
+          <option>Entertainment</option>
+        </select>
+        <input type="date" id="date" required class="w-full border px-4 py-2 rounded">
+        <input type="text" placeholder="Notes (optional)" id="notes" class="w-full border px-4 py-2 rounded">
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Add Expense</button>
+      </form>
+    </div>
+
+    <!-- Expense List -->
+    <div class="md:col-span-2 bg-white rounded-xl p-6 shadow">
+      <h2 class="text-lg font-semibold text-blue-800 mb-4">Expense List</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+          <thead class="text-gray-600 border-b">
+            <tr>
+              <th class="py-2">Amount</th>
+              <th>Category</th>
+              <th>Date</th>
+              <th>Notes</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="expenseTable" class="text-gray-700"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analytics -->
+  <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+    <!-- Total Monthly Spend -->
+    <div class="bg-white p-6 rounded-xl shadow text-center">
+      <h3 class="text-blue-800 font-bold text-lg mb-2">Total Monthly Spend</h3>
+      <p id="monthlySpend" class="text-2xl font-semibold text-gray-800">₹0</p>
+    </div>
+
+    <!-- Pie Chart -->
+    <div class="bg-white p-6 rounded-xl shadow">
+      <h3 class="text-blue-800 font-bold text-lg mb-4">Spending by Category</h3>
+      <canvas id="categoryChart"></canvas>
+    </div>
+
+    <!-- Line Chart -->
+    <div class="bg-white p-6 rounded-xl shadow">
+      <h3 class="text-blue-800 font-bold text-lg mb-4">Weekly Trend</h3>
+      <canvas id="trendChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Budget Alerts -->
+  <div class="max-w-6xl mx-auto px-4 mb-16">
+    <div class="bg-white p-6 rounded-xl shadow">
+      <h3 class="text-blue-800 font-bold text-lg mb-4">Budget Planning</h3>
+      <form id="budgetForm" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <input type="text" placeholder="Category" required class="border px-3 py-2 rounded" id="budgetCategory">
+        <input type="number" placeholder="Monthly Limit" required class="border px-3 py-2 rounded" id="budgetAmount">
+        <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 col-span-2 md:col-span-1">Set Budget</button>
+      </form>
+      <ul id="budgetAlerts" class="text-sm text-gray-700 space-y-2"></ul>
+    </div>
+  </div>
+
+  <!-- JS Logic (Placeholder) -->
+  <script>
+    const expenses = [];
+    const budgets = {};
+
+    const expenseForm = document.getElementById("expenseForm");
+    const expenseTable = document.getElementById("expenseTable");
+    const monthlySpend = document.getElementById("monthlySpend");
+    const categoryChartCtx = document.getElementById("categoryChart").getContext("2d");
+    const trendChartCtx = document.getElementById("trendChart").getContext("2d");
+    const budgetForm = document.getElementById("budgetForm");
+    const budgetAlerts = document.getElementById("budgetAlerts");
+
+    let categoryChart = new Chart(categoryChartCtx, {
+      type: "pie",
+      data: { labels: [], datasets: [{ data: [], backgroundColor: ["#60A5FA", "#F87171", "#34D399", "#FBBF24"] }] },
+      options: { responsive: true }
+    });
+
+    let trendChart = new Chart(trendChartCtx, {
+      type: "line",
+      data: { labels: [], datasets: [{ label: 'Daily Spend', data: [], borderColor: "#3B82F6", fill: false }] },
+      options: { responsive: true }
+    });
+
+    expenseForm.addEventListener("submit", e => {
+      e.preventDefault();
+      const amount = parseFloat(document.getElementById("amount").value);
+      const category = document.getElementById("category").value;
+      const date = document.getElementById("date").value;
+      const notes = document.getElementById("notes").value;
+
+      const newExpense = { amount, category, date, notes };
+      expenses.push(newExpense);
+      renderExpenses();
+      updateAnalytics();
+      checkBudgets();
+      expenseForm.reset();
+    });
+
+    function renderExpenses() {
+      expenseTable.innerHTML = "";
+      expenses.forEach((exp, idx) => {
+        expenseTable.innerHTML += `
+          <tr>
+            <td class="py-2">₹${exp.amount}</td>
+            <td>${exp.category}</td>
+            <td>${exp.date}</td>
+            <td>${exp.notes || '-'}</td>
+            <td>
+              <button onclick="deleteExpense(${idx})" class="text-red-500 hover:underline">Delete</button>
+            </td>
+          </tr>`;
+      });
+    }
+
+    function deleteExpense(index) {
+      expenses.splice(index, 1);
+      renderExpenses();
+      updateAnalytics();
+      checkBudgets();
+    }
+
+    function updateAnalytics() {
+      // Monthly Spend
+      const total = expenses.reduce((sum, e) => sum + e.amount, 0);
+      monthlySpend.textContent = `₹${total}`;
+
+      // Pie Chart
+      const categoryTotals = {};
+      expenses.forEach(e => categoryTotals[e.category] = (categoryTotals[e.category] || 0) + e.amount);
+      categoryChart.data.labels = Object.keys(categoryTotals);
+      categoryChart.data.datasets[0].data = Object.values(categoryTotals);
+      categoryChart.update();
+
+      // Line Chart
+      const daily = {};
+      expenses.forEach(e => daily[e.date] = (daily[e.date] || 0) + e.amount);
+      const sortedDates = Object.keys(daily).sort();
+      trendChart.data.labels = sortedDates;
+      trendChart.data.datasets[0].data = sortedDates.map(date => daily[date]);
+      trendChart.update();
+    }
+
+    budgetForm.addEventListener("submit", e => {
+      e.preventDefault();
+      const cat = document.getElementById("budgetCategory").value;
+      const amt = parseFloat(document.getElementById("budgetAmount").value);
+      budgets[cat] = amt;
+      checkBudgets();
+      budgetForm.reset();
+    });
+
+    function checkBudgets() {
+      budgetAlerts.innerHTML = "";
+      const spendByCategory = {};
+      expenses.forEach(e => spendByCategory[e.category] = (spendByCategory[e.category] || 0) + e.amount);
+
+      for (const cat in budgets) {
+        const spent = spendByCategory[cat] || 0;
+        const limit = budgets[cat];
+        let msg = `🔵 ${cat}: ₹${spent} / ₹${limit}`;
+        if (spent >= limit) {
+          msg = `🔴 <strong>${cat} exceeded budget!</strong> ₹${spent} / ₹${limit}`;
+        } else if (spent >= 0.8 * limit) {
+          msg = `🟠 <strong>${cat} near budget (80%)</strong> ₹${spent} / ₹${limit}`;
+        }
+        budgetAlerts.innerHTML += `<li>${msg}</li>`;
+      }
+    }
+  </script>
+</body>
+</html>
