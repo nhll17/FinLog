@@ -10,7 +10,7 @@
   <div class="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-md">
     <h2 class="text-3xl font-bold text-center text-blue-800 mb-6">Welcome Back to BudgetMate</h2>
 
-    <form action="#" method="POST" class="space-y-5">
+    <form class="space-y-5">
       <div>
         <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
         <input type="email" id="email" name="email" required
@@ -41,5 +41,27 @@
       </p>
     </form>
   </div>
+  <!-- Firebase SDKs (needed only once) -->
+<script type="module">
+  // Import the Firebase config from your local file
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  import { firebaseConfig } from "./src/firebase.js";
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // You can export `auth` and `db` from here if needed
+  window.auth = auth;
+  window.db = db;
+</script>
+
+<!-- Your login/signup/dashboard script -->
+<script type="module" src="./src/auth.js"></script> <!-- or src/expense.js / budget.js -->
+
+
 </body>
 </html>
