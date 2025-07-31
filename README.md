@@ -37,5 +37,9 @@
 
 ---
 
-## 🖼️ Project Structure
+## 👨‍💻 Author
+Amisha Shaney
+Devatheertha
+Jumana Haseen
+Nehal Nourine
 
