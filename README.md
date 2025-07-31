@@ -38,8 +38,8 @@
 ---
 
 ## 👨‍💻 Author
-Amisha Shaney
-Devatheertha
-Jumana Haseen
+Amisha Shaney<br>
+Devatheertha<br>
+Jumana Haseen<br>
 Nehal Nourine
 
