@@ -1,5 +1,6 @@
 # 💰 FinLog
 
+https://nhll17.github.io/FinLog/
 **FinLog** is a simple and visually engaging personal expense tracker and budget planner built using HTML, Tailwind CSS, and vanilla JavaScript. It allows users to log daily expenses, set monthly budgets, and visualize spending trends through interactive charts.
 
 ---
